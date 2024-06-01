@@ -1,41 +1,51 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from 'node:fs';
 import Parser from "rss-parser";
 
-// 기존 README.md 파일 읽기
-const readmePath = "README.md";
-let readmeContent = readFileSync(readmePath, "utf8");
+/**
+ * README.MD에 작성될 페이지 텍스트
+ * @type {string}
+ */
+let text = `# Hi there 👋
 
-// RSS 파서 생성
+## 이런 환경에 익숙해요✍🏼
+
+## 언어
+
+<p>
+  <img alt="" src= "https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=JavaScript&logoColor=white"/> 
+  <img alt="" src= "https://img.shields.io/badge/TypeScript-black?logo=typescript&logoColor=blue"/>
+</p>
+
+## Contact me
+
+## 📕 Latest Blog Posts
+
+`;
+
+// rss-parser 생성
 const parser = new Parser({
-  headers: {
-    Accept: "application/rss+xml, application/xml, text/xml; q=0.1",
-  },
-});
+    headers: {
+        Accept: 'application/rss+xml, application/xml, text/xml; q=0.1',
+    }});
 
-// 최신 블로그 포스트 추가하는 함수
 (async () => {
-  // RSS 피드 가져오기
-  const feed = await parser.parseURL("https://thisissolmi.tistory.com/rss"); 
 
-  // 최신 5개의 글의 제목과 링크를 추가할 텍스트 생성
-  let latestPosts = "### Latest Blog Posts\n\n";
-  for (let i = 0; i < 5 && i < feed.items.length; i++) {
-    const { title, link } = feed.items[i];
-    latestPosts += `- [${title}](${link})\n`;
-  }
+    // 피드 목록
+    const feed = await parser.parseURL('https://thisissolmi.tistory.com/rss');
 
-  // 기존 README.md에 최신 블로그 포스트 추가
-  const newReadmeContent = readmeContent.includes("### Latest Blog Posts")
-    ? readmeContent.replace(
-        /### Latest Blog Posts[\s\S]*?(?=\n\n## |\n$)/,
-        latestPosts
-      )
-    : readmeContent + latestPosts;
+    // 최신 5개의 글의 제목과 링크를 가져온 후 text에 추가
+    for (let i = 0; i < 5; i++) {
+        const {title, link} = feed.items[i];
+        console.log(`${i + 1}번째 게시물`);
+        console.log(`추가될 제목: ${title}`);
+        console.log(`추가될 링크: ${link}`);
+        text += `<a href=${link}>${title}</a></br>`;
+    }
 
-  if (newReadmeContent !== readmeContent) {
-    writeFileSync(readmePath, newReadmeContent, "utf8");
-    console.log("README.md 업데이트 완료");
-  } else {
-    console.log("새로운 블로그 포스트가 없습니다. README.md 파일이 업데이트되지 않았습니다.");
-  }
+    // README.md 파일 작성
+    writeFileSync('README.md', text, 'utf8', (e) => {
+        console.log(e)
+    })
+
+    console.log('업데이트 완료')
 })();
